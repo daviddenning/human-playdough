@@ -5,8 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Drama Randomiser</title>
 <style>
-  @import url('data:text/css,');
-
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
   body {
@@ -17,10 +15,10 @@
     justify-content: center;
     font-family: 'Arial Black', 'Arial Bold', Arial, sans-serif;
     background: #1a1a1a;
-    overflow: hidden;
+    overflow-x: hidden;
+    overflow-y: auto;
     position: relative;
   }
-
 
   .bg-image {
     position: fixed;
@@ -32,7 +30,7 @@
     pointer-events: none;
   }
   @keyframes bgFade {
-    0%, 100% { opacity: 0.5; }
+    0%, 100% { opacity: 0.3; }
     50%       { opacity: 0.2; }
   }
 
@@ -66,11 +64,126 @@
     font-size: clamp(1rem, 2.5vw, 1.6rem);
     color: #ffffff;
     letter-spacing: 2px;
-    margin-bottom: 50px;
+    margin-bottom: 40px;
     text-shadow: 2px 2px 0 rgba(230,57,70,0.5);
   }
 
-  /* Result cards */
+  /* ── Setup phase ── */
+  .setup {
+    display: flex;
+    gap: 30px;
+    justify-content: center;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    margin-bottom: 40px;
+  }
+
+  .setup-panel {
+    flex: 1;
+    min-width: 280px;
+    max-width: 480px;
+    border-radius: 24px;
+    padding: 24px 20px 18px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .setup-item {
+    background: #E63946;
+    border: 3px solid #E63946;
+    box-shadow: 0 0 30px rgba(230,57,70,0.5), 0 8px 30px rgba(0,0,0,0.5);
+  }
+
+  .setup-place {
+    background: #111111;
+    border: 3px solid #E63946;
+    box-shadow: 0 0 30px rgba(230,57,70,0.3), 0 8px 30px rgba(0,0,0,0.5);
+  }
+
+  .setup-panel .card-label {
+    font-size: clamp(0.85rem, 2vw, 1.1rem);
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    margin-bottom: 14px;
+    opacity: 0.85;
+    color: #ffffff;
+  }
+
+  .item-list {
+    max-height: 300px;
+    overflow-y: auto;
+    margin-bottom: 10px;
+    padding-right: 2px;
+  }
+
+  .item-list::-webkit-scrollbar { width: 4px; }
+  .item-list::-webkit-scrollbar-track { background: rgba(0,0,0,0.15); border-radius: 2px; }
+  .item-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.3); border-radius: 2px; }
+
+  .item-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 6px;
+  }
+
+  .item-row input {
+    flex: 1;
+    background: rgba(0,0,0,0.25);
+    border: 1px solid rgba(255,255,255,0.18);
+    border-radius: 8px;
+    padding: 8px 12px;
+    color: #fff;
+    font-family: 'Arial Black', Arial, sans-serif;
+    font-size: clamp(0.72rem, 1.4vw, 0.88rem);
+    outline: none;
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .item-row input:focus {
+    border-color: rgba(255,255,255,0.5);
+    background: rgba(0,0,0,0.38);
+  }
+  .item-row input::placeholder {
+    color: rgba(255,255,255,0.38);
+    font-weight: 400;
+    font-style: italic;
+  }
+
+  .delete-btn {
+    background: none;
+    border: none;
+    color: rgba(255,255,255,0.45);
+    cursor: pointer;
+    font-size: 1.25rem;
+    line-height: 1;
+    padding: 4px 8px;
+    margin-left: 5px;
+    flex-shrink: 0;
+    transition: color 0.15s;
+  }
+  .delete-btn:hover { color: rgba(255,255,255,0.9); }
+
+  .add-btn {
+    background: rgba(0,0,0,0.18);
+    border: 1px dashed rgba(255,255,255,0.32);
+    border-radius: 8px;
+    color: rgba(255,255,255,0.65);
+    padding: 8px 14px;
+    cursor: pointer;
+    width: 100%;
+    font-family: 'Arial Black', Arial, sans-serif;
+    font-size: 0.78rem;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    transition: background 0.2s, color 0.2s, border-color 0.2s;
+  }
+  .add-btn:hover {
+    background: rgba(0,0,0,0.32);
+    color: #fff;
+    border-color: rgba(255,255,255,0.55);
+  }
+
+  /* ── Result cards (play phase) ── */
   .results {
     display: flex;
     gap: 30px;
@@ -83,10 +196,11 @@
 
   .card {
     flex: 1;
-    min-width: 280px;
-    max-width: 480px;
+    min-width: 336px;
+    max-width: 576px;
+    height: 280px;
     border-radius: 24px;
-    padding: 30px 24px;
+    padding: 36px 29px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -108,7 +222,7 @@
   }
 
   .card-label {
-    font-size: clamp(0.85rem, 2vw, 1.1rem);
+    font-size: clamp(1.02rem, 2.4vw, 1.32rem);
     font-weight: 900;
     text-transform: uppercase;
     letter-spacing: 3px;
@@ -118,19 +232,18 @@
   }
 
   .card-text {
-    font-size: clamp(1.6rem, 4vw, 2.8rem);
+    font-size: clamp(1.92rem, 4.8vw, 3.36rem);
     font-weight: 900;
     text-align: center;
     line-height: 1.2;
     color: #ffffff;
     text-shadow: 2px 2px 0 rgba(0,0,0,0.4);
-    min-height: 80px;
+    overflow: hidden;
     display: flex;
     align-items: center;
     justify-content: center;
   }
 
-  /* Spinning/shuffling state */
   .card-text.spinning {
     animation: shuffle 0.1s steps(1) infinite;
   }
@@ -142,7 +255,6 @@
     100% { opacity: 1; transform: scale(1.05) rotate(-1deg); }
   }
 
-  /* Landing animation */
   .card-text.landing {
     animation: land 0.5s cubic-bezier(0.22, 1.4, 0.36, 1) forwards;
   }
@@ -161,7 +273,6 @@
     100% { transform: scale(1); }
   }
 
-  /* The "IN A..." connector */
   .connector {
     font-size: clamp(2rem, 5vw, 4rem);
     font-weight: 900;
@@ -172,7 +283,7 @@
     flex-shrink: 0;
   }
 
-  /* Button */
+  /* ── Button ── */
   .spin-btn {
     font-family: 'Arial Black', Arial, sans-serif;
     font-size: clamp(1.4rem, 3.5vw, 2.2rem);
@@ -221,7 +332,7 @@
     cursor: not-allowed;
   }
 
-  /* Confetti burst */
+  /* ── Confetti ── */
   .confetti-piece {
     position: fixed;
     width: 12px;
@@ -237,13 +348,15 @@
     100% { transform: translateY(80vh) rotate(720deg) scale(0.5); opacity: 0; }
   }
 
-  /* Idle placeholder text */
   .placeholder {
     color: rgba(255,255,255,0.35);
     font-style: italic;
     font-size: clamp(1rem, 2.5vw, 1.5rem);
     font-weight: 700;
   }
+
+  /* Phase visibility */
+  .phase-hidden { display: none !important; }
 </style>
 </head>
 <body>
@@ -253,9 +366,26 @@
 <div class="container">
   <img src="welcomechurchlogo1.webp" alt="Welcome Church" style="height:80px; width:auto; margin-bottom:20px; display:block; margin-left:auto; margin-right:auto;">
   <h1>Human Play-dough</h1>
-  <p class="subtitle">What will your scene be?</p>
 
-  <div class="results">
+  <!-- ── Setup phase ── -->
+  <div class="setup" id="setup">
+    <div class="setup-panel setup-item">
+      <div class="card-label">Items</div>
+      <div class="item-list" id="item-list"></div>
+      <button class="add-btn" onclick="addRow('item-list', '')">+ Add item</button>
+    </div>
+
+    <div class="connector">IN A</div>
+
+    <div class="setup-panel setup-place">
+      <div class="card-label">Places</div>
+      <div class="item-list" id="place-list"></div>
+      <button class="add-btn" onclick="addRow('place-list', '')">+ Add place</button>
+    </div>
+  </div>
+
+  <!-- ── Play phase ── -->
+  <div class="results phase-hidden" id="results">
     <div class="card card-item" id="card-item">
       <div class="card-label">Your Item</div>
       <div class="card-text" id="item-text">
@@ -273,13 +403,11 @@
     </div>
   </div>
 
-  <button class="spin-btn" id="spinBtn" onclick="spin()">
-    🎲 Randomise!
-  </button>
+  <button class="spin-btn" id="spinBtn" onclick="begin()">Begin</button>
 </div>
 
 <script>
-  const ITEMS = [
+  const DEFAULT_ITEMS = [
     "Washing Machine","Rollercoaster","Lawnmower","Trampoline","Helicopter",
     "Shopping Trolley","Revolving Door","Catapult","Combine Harvester",
     "Hot Air Balloon","Cement Mixer","Forklift","Windmill","Escalator",
@@ -287,7 +415,7 @@
     "Photocopier","Ski Lift"
   ];
 
-  const PLACES = [
+  const DEFAULT_PLACES = [
     "Swimming Pool","The Oscars Ceremony","A Forest","Falling Out of the Sky",
     "The Moon","A Wedding Reception","Rush Hour Tube Train","A Volcano",
     "The World Cup Final","A Supermarket at Christmas","A Royal Banquet",
@@ -301,18 +429,86 @@
     "#ff8888","#8b0000","#ffcccc","#dd0000","#ff2233"
   ];
 
-  // --- Spin logic ---
+  let ITEMS = [...DEFAULT_ITEMS];
+  let PLACES = [...DEFAULT_PLACES];
+
+  // ── Setup helpers ──
+
+  function addRow(listId, placeholder) {
+    const list = document.getElementById(listId);
+    const row = document.createElement('div');
+    row.className = 'item-row';
+
+    const inp = document.createElement('input');
+    inp.type = 'text';
+    inp.placeholder = placeholder;
+
+    const del = document.createElement('button');
+    del.className = 'delete-btn';
+    del.innerHTML = '&times;';
+    del.setAttribute('aria-label', 'Remove');
+    del.onclick = () => row.remove();
+
+    row.appendChild(inp);
+    row.appendChild(del);
+    list.appendChild(row);
+
+    if (!placeholder) inp.focus();
+  }
+
+  function getValues(listId) {
+    return Array.from(document.getElementById(listId).querySelectorAll('input'))
+      .map(inp => inp.value.trim() || inp.placeholder)
+      .filter(v => v.length > 0);
+  }
+
+  function begin() {
+    const items  = getValues('item-list');
+    const places = getValues('place-list');
+
+    ITEMS  = items.length  ? items  : [...DEFAULT_ITEMS];
+    PLACES = places.length ? places : [...DEFAULT_PLACES];
+
+    document.getElementById('setup').classList.add('phase-hidden');
+    document.getElementById('results').classList.remove('phase-hidden');
+
+    const btn = document.getElementById('spinBtn');
+    btn.textContent = '🎲 Randomise!';
+    btn.onclick = spin;
+  }
+
+  // ── Spin logic ──
+
   function pick(arr) {
     return arr[Math.floor(Math.random() * arr.length)];
   }
 
+  function fitText(el) {
+    const card = el.closest('.card');
+    const cardStyle = getComputedStyle(card);
+    const label = card.querySelector('.card-label');
+    const available = card.clientHeight
+      - parseFloat(cardStyle.paddingTop)
+      - parseFloat(cardStyle.paddingBottom)
+      - label.offsetHeight
+      - parseFloat(getComputedStyle(label).marginBottom);
+    const minPx = 24;
+    while (el.scrollHeight > Math.ceil(available)) {
+      const cur = parseFloat(getComputedStyle(el).fontSize);
+      if (cur <= minPx) break;
+      el.style.fontSize = Math.max(minPx, cur - 2) + 'px';
+    }
+  }
+
   function setCardText(el, text, state) {
+    el.style.fontSize = '';
     el.className = 'card-text';
     if (state) {
-      void el.offsetWidth; // reflow to restart animation
+      void el.offsetWidth;
       el.className = 'card-text ' + state;
     }
     el.textContent = text;
+    fitText(el);
   }
 
   function spawnConfetti() {
@@ -333,11 +529,11 @@
         left:${startX}px;
         top:${cy}px;
         background:${color};
-        width:${8+Math.random()*10}px;
-        height:${8+Math.random()*10}px;
-        border-radius:${Math.random()>0.5?'50%':'2px'};
-        animation-duration:${0.8+Math.random()*1}s;
-        animation-delay:${Math.random()*0.2}s;
+        width:${8 + Math.random() * 10}px;
+        height:${8 + Math.random() * 10}px;
+        border-radius:${Math.random() > 0.5 ? '50%' : '2px'};
+        animation-duration:${0.8 + Math.random() * 1}s;
+        animation-delay:${Math.random() * 0.2}s;
       `;
       document.body.appendChild(piece);
       piece.addEventListener('animationend', () => piece.remove());
@@ -345,27 +541,25 @@
   }
 
   function spin() {
-    const btn = document.getElementById('spinBtn');
-    const itemEl = document.getElementById('item-text');
-    const placeEl = document.getElementById('place-text');
-    const cardItem = document.getElementById('card-item');
+    const btn      = document.getElementById('spinBtn');
+    const itemEl   = document.getElementById('item-text');
+    const placeEl  = document.getElementById('place-text');
+    const cardItem  = document.getElementById('card-item');
     const cardPlace = document.getElementById('card-place');
 
     btn.disabled = true;
     btn.textContent = '⚡ Spinning...';
 
-    const finalItem = pick(ITEMS);
+    const finalItem  = pick(ITEMS);
     const finalPlace = pick(PLACES);
 
-    // Shuffle phase: rapidly flash random options
     let shuffleCount = 0;
     const totalShuffles = 28;
     const shuffleInterval = setInterval(() => {
-      setCardText(itemEl, pick(ITEMS), 'spinning');
+      setCardText(itemEl,  pick(ITEMS),  'spinning');
       setCardText(placeEl, pick(PLACES), 'spinning');
       shuffleCount++;
 
-      // Slow down near the end
       if (shuffleCount >= totalShuffles * 0.65) {
         clearInterval(shuffleInterval);
         slowDown(itemEl, placeEl, cardItem, cardPlace, finalItem, finalPlace, btn);
@@ -379,19 +573,18 @@
 
     function step() {
       if (i < delays.length) {
-        setCardText(itemEl, i % 2 === 0 ? pick(ITEMS) : finalItem, 'spinning');
+        setCardText(itemEl,  i % 2 === 0 ? pick(ITEMS)  : finalItem,  'spinning');
         setCardText(placeEl, i % 2 === 0 ? pick(PLACES) : finalPlace, 'spinning');
         i++;
         setTimeout(step, delays[i - 1]);
       } else {
-        // Land!
-        setCardText(itemEl, finalItem, 'landing');
+        setCardText(itemEl,  finalItem,  'landing');
         setCardText(placeEl, finalPlace, 'landing');
 
-        cardItem.className = 'card card-item landed';
+        cardItem.className  = 'card card-item landed';
         cardPlace.className = 'card card-place landed';
         setTimeout(() => {
-          cardItem.className = 'card card-item';
+          cardItem.className  = 'card card-item';
           cardPlace.className = 'card card-place';
         }, 600);
 
@@ -403,6 +596,21 @@
     }
     step();
   }
+
+  // ── Spacebar triggers the spin button ──
+  document.addEventListener('keydown', (e) => {
+    if (e.code === 'Space' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+      e.preventDefault();
+      const btn = document.getElementById('spinBtn');
+      if (!btn.disabled) btn.click();
+    }
+  });
+
+  // ── On load: populate lists with defaults as placeholders ──
+  window.addEventListener('DOMContentLoaded', () => {
+    DEFAULT_ITEMS.forEach(item   => addRow('item-list',  item));
+    DEFAULT_PLACES.forEach(place => addRow('place-list', place));
+  });
 </script>
 </body>
 </html>
